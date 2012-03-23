@@ -12,6 +12,7 @@ main :: IO ()
 main = (processCmd =<<) $ cmdArgs $
   modes
     [ cmdDomainList
+    , cmdDomainResourceList
     ]
   &= summary versionString
   &= program "hlinode"
@@ -22,14 +23,33 @@ versionString =
 
 data Cmd =
     CmdDomainList
+  | CmdDomainResourceList { cmdDomainResourceListDomainID :: Int }
   deriving (Data, Typeable)
 
 cmdDomainList :: Cmd
 cmdDomainList = CmdDomainList
   &= help "List domains the API key have access to."
+  &= explicit
+  &= name "list-domains"
+
+cmdDomainResourceList :: Cmd
+cmdDomainResourceList = CmdDomainResourceList
+  { cmdDomainResourceListDomainID = def
+    &= typ "DomainID"
+    &= explicit
+    &= name "d"
+    &= name "domain"
+  } &= help "List the resources associated to a domain."
+    &= explicit
+    &= name "list-resources"
 
 processCmd :: Cmd -> IO ()
 processCmd CmdDomainList{..} = do
   apiKey <- readFile "api-key.txt"
   domains <- domainList apiKey
   print domains
+
+processCmd CmdDomainResourceList{..} = do
+  apiKey <- readFile "api-key.txt"
+  resources <- domainResourceList apiKey cmdDomainResourceListDomainID
+  print resources

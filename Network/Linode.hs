@@ -30,3 +30,10 @@ apiCall apiKey parameters = do
 -- | List domains the API key have access to.
 domainList :: String -> IO (Maybe Value)
 domainList apiKey = apiCall apiKey [("api_action", "domain.list")]
+
+-- | List the resources associated to a domain.
+domainResourceList :: String -> Int -> IO (Maybe Value)
+domainResourceList apiKey domainId = apiCall apiKey
+  [ ("api_action", "domain.resource.list")
+  , ("DomainID", B.pack $ show domainId)
+  ]
