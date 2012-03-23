@@ -46,8 +46,10 @@ cmdDomainResourceList = CmdDomainResourceList
 processCmd :: Cmd -> IO ()
 processCmd CmdDomainList{..} = do
   apiKey <- readFile "api-key.txt"
-  domains <- domainList apiKey
-  print domains
+  mdomains <- domainList apiKey
+  case mdomains of
+    Nothing -> putStrLn "Some error occured."
+    Just domains -> print domains
 
 processCmd CmdDomainResourceList{..} = do
   apiKey <- readFile "api-key.txt"

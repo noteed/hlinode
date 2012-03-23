@@ -15,7 +15,8 @@ library
                        aeson == 0.4.*,
                        attoparsec == 0.8.*,
                        bytestring == 0.9.*,
-                       http-enumerator == 0.7.*
+                       http-enumerator == 0.7.*,
+                       text == 0.11.*
   exposed-modules:     Network.Linode
   ghc-options:         -Wall
 
