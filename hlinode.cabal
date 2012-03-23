@@ -23,5 +23,6 @@ executable hlinode
   hs-source-dirs:      bin
   main-is:             hlinode.hs
   build-depends:       base == 4.*,
+                       cmdargs == 0.9.*,
                        hlinode
   ghc-options:         -Wall
