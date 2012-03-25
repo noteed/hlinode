@@ -40,7 +40,7 @@ apiCall :: FromJSON a =>
   String -> [(B.ByteString, B.ByteString)] -> IO (Maybe a)
 apiCall apiKey parameters = do
   mApiResponse <- apiCall' apiKey parameters
-  -- print mApiResponse
+  print mApiResponse
   case (fromJSON . apiResponseData) <$> mApiResponse of
     Just (Success x) -> return $ Just x
     x -> do
@@ -52,8 +52,8 @@ domainList :: String -> IO (Maybe [Domain])
 domainList apiKey = apiCall apiKey [("api_action", "domain.list")]
 
 -- | List the resources associated to a domain.
-domainResourceList :: String -> Int -> IO (Maybe ApiResponse)
-domainResourceList apiKey domainId = apiCall' apiKey
+domainResourceList :: String -> Int -> IO (Maybe [Resource])
+domainResourceList apiKey domainId = apiCall apiKey
   [ ("api_action", "domain.resource.list")
   , ("DomainID", B.pack $ show domainId)
   ]
@@ -87,6 +87,35 @@ instance FromJSON Domain where
     v .: "EXPIRE_SEC" <*>
     v .: "REFRESH_SEC" <*>
     v .: "TTL_SEC"
+  parseJSON _ = mzero
+
+-- | Represent a domain resource
+data Resource = Resource
+  { resourceProtocol :: Text
+  , resourceTtlSec :: Int
+  , resourcePriority :: Int
+  , resourceType :: Text
+  , resourceTarget :: Text
+  , resourceWeight :: Int
+  , resourceId :: Int
+  , resourcePort :: Int
+  , resourceDomainId :: Int
+  , resourceName :: Text
+  }
+  deriving Show
+
+instance FromJSON Resource where
+  parseJSON (Object v) = Resource <$>
+    v .: "PROTOCOL" <*>
+    v .: "TTL_SEC" <*>
+    v .: "PRIORITY" <*>
+    v .: "TYPE" <*>
+    v .: "TARGET" <*>
+    v .: "WEIGHT" <*>
+    v .: "RESOURCEID" <*>
+    v .: "PORT" <*>
+    v .: "DOMAINID" <*>
+    v .: "NAME"
   parseJSON _ = mzero
 
 -- | Represent a Linode response in a slightly more structured data type than
