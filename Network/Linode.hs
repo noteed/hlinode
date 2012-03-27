@@ -40,11 +40,10 @@ apiCall :: FromJSON a =>
   String -> [(B.ByteString, B.ByteString)] -> IO (Maybe a)
 apiCall apiKey parameters = do
   mApiResponse <- apiCall' apiKey parameters
-  print mApiResponse
+  -- print mApiResponse
   case (fromJSON . apiResponseData) <$> mApiResponse of
     Just (Success x) -> return $ Just x
-    x -> do
-      -- print x
+    _ -> do
       return Nothing
 
 -- | List domains the API key have access to.
@@ -56,6 +55,16 @@ domainResourceList :: String -> Int -> IO (Maybe [Resource])
 domainResourceList apiKey domainId = apiCall apiKey
   [ ("api_action", "domain.resource.list")
   , ("DomainID", B.pack $ show domainId)
+  ]
+
+-- | Create a domain record.
+domainResourceCreateA :: String -> Int -> String -> String -> IO (Maybe ResourceId)
+domainResourceCreateA apiKey domainId fqdn target = apiCall apiKey
+  [ ("api_action", "domain.resource.create")
+  , ("DomainID", B.pack $ show domainId)
+  , ("Type", "A")
+  , ("Name", B.pack fqdn)
+  , ("Target", B.pack target)
   ]
 
 -- | Represent a domain.
@@ -116,6 +125,16 @@ instance FromJSON Resource where
     v .: "PORT" <*>
     v .: "DOMAINID" <*>
     v .: "NAME"
+  parseJSON _ = mzero
+
+-- | Represent a domain resource ID, e.g. the result of
+-- domain.resource.create.
+data ResourceId = ResourceId Int
+  deriving Show
+
+instance FromJSON ResourceId where
+  parseJSON (Object v) = ResourceId <$>
+    v .: "ResourceID"
   parseJSON _ = mzero
 
 -- | Represent a Linode response in a slightly more structured data type than

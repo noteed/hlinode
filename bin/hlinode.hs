@@ -13,6 +13,7 @@ main = (processCmd =<<) $ cmdArgs $
   modes
     [ cmdDomainList
     , cmdDomainResourceList
+    , cmdDomainResourceCreateA
     ]
   &= summary versionString
   &= program "hlinode"
@@ -24,6 +25,11 @@ versionString =
 data Cmd =
     CmdDomainList
   | CmdDomainResourceList { cmdDomainResourceListDomainID :: Int }
+  | CmdDomainResourceCreateA
+  { cmdDomainResourceCreateADomainID :: Int
+  , cmdDomainResourceCreateAFQDN :: String
+  , cmdDomainResourceCreateATarget :: String
+  }
   deriving (Data, Typeable)
 
 cmdDomainList :: Cmd
@@ -43,6 +49,25 @@ cmdDomainResourceList = CmdDomainResourceList
     &= explicit
     &= name "list-resources"
 
+cmdDomainResourceCreateA :: Cmd
+cmdDomainResourceCreateA = CmdDomainResourceCreateA
+  { cmdDomainResourceCreateADomainID = def
+    &= typ "DomainID"
+    &= explicit
+    &= name "d"
+    &= name "domain"
+  , cmdDomainResourceCreateAFQDN = def
+    &= typ "FQDN"
+    &= explicit
+    &= name "fqdn"
+  , cmdDomainResourceCreateATarget = def
+    &= typ "Target"
+    &= explicit
+    &= name "target"
+  } &= help "Create a new domain record."
+    &= explicit
+    &= name "create-resource-a"
+
 processCmd :: Cmd -> IO ()
 processCmd CmdDomainList{..} = do
   apiKey <- readFile "api-key.txt"
@@ -55,3 +80,9 @@ processCmd CmdDomainResourceList{..} = do
   apiKey <- readFile "api-key.txt"
   resources <- domainResourceList apiKey cmdDomainResourceListDomainID
   print resources
+
+processCmd CmdDomainResourceCreateA{..} = do
+  apiKey <- readFile "api-key.txt"
+  resource <- domainResourceCreateA apiKey cmdDomainResourceCreateADomainID
+    cmdDomainResourceCreateAFQDN cmdDomainResourceCreateATarget
+  print resource
