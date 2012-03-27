@@ -14,6 +14,7 @@ main = (processCmd =<<) $ cmdArgs $
     [ cmdDomainList
     , cmdDomainResourceList
     , cmdDomainResourceCreateA
+    , cmdDomainResourceDelete
     ]
   &= summary versionString
   &= program "hlinode"
@@ -29,6 +30,10 @@ data Cmd =
   { cmdDomainResourceCreateADomainID :: Int
   , cmdDomainResourceCreateAFQDN :: String
   , cmdDomainResourceCreateATarget :: String
+  }
+  | CmdDomainResourceDelete
+  { cmdDomainResourceDeleteDomainID :: Int
+  , cmdDomainResourceDeleteResourceID :: Int
   }
   deriving (Data, Typeable)
 
@@ -68,6 +73,22 @@ cmdDomainResourceCreateA = CmdDomainResourceCreateA
     &= explicit
     &= name "create-resource-a"
 
+cmdDomainResourceDelete :: Cmd
+cmdDomainResourceDelete = CmdDomainResourceDelete
+  { cmdDomainResourceDeleteDomainID = def
+    &= typ "DomainID"
+    &= explicit
+    &= name "d"
+    &= name "domain"
+  , cmdDomainResourceDeleteResourceID = def
+    &= typ "ResourceID"
+    &= explicit
+    &= name "r"
+    &= name "resource"
+  } &= help "Delete a domain record."
+    &= explicit
+    &= name "delete-resource"
+
 processCmd :: Cmd -> IO ()
 processCmd CmdDomainList{..} = do
   apiKey <- readFile "api-key.txt"
@@ -85,4 +106,10 @@ processCmd CmdDomainResourceCreateA{..} = do
   apiKey <- readFile "api-key.txt"
   resource <- domainResourceCreateA apiKey cmdDomainResourceCreateADomainID
     cmdDomainResourceCreateAFQDN cmdDomainResourceCreateATarget
+  print resource
+
+processCmd CmdDomainResourceDelete{..} = do
+  apiKey <- readFile "api-key.txt"
+  resource <- domainResourceDelete apiKey cmdDomainResourceDeleteDomainID
+    cmdDomainResourceDeleteResourceID
   print resource

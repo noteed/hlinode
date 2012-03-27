@@ -67,6 +67,14 @@ domainResourceCreateA apiKey domainId fqdn target = apiCall apiKey
   , ("Target", B.pack target)
   ]
 
+-- | Delete a domain record.
+domainResourceDelete :: String -> Int -> Int -> IO (Maybe ResourceId)
+domainResourceDelete apiKey domainId resourceId = apiCall apiKey
+  [ ("api_action", "domain.resource.delete")
+  , ("DomainID", B.pack $ show domainId)
+  , ("ResourceID", B.pack $ show resourceId)
+  ]
+
 -- | Represent a domain.
 data Domain = Domain
   { domainId :: Int
