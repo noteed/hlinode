@@ -5,6 +5,8 @@ module Main where
 import Data.Version (showVersion)
 import Paths_hlinode (version)
 import System.Console.CmdArgs.Implicit
+import System.Directory (doesFileExist)
+import System.Exit
 
 import Network.Linode
 
@@ -25,27 +27,46 @@ versionString =
 
 data Cmd =
     CmdDomainList
-  | CmdDomainResourceList { cmdDomainResourceListDomainID :: Int }
+  { cmdDomainListApiKey :: String
+  }
+  | CmdDomainResourceList
+  { cmdDomainResourceListApiKey :: String
+  , cmdDomainResourceListDomainID :: Int
+  }
   | CmdDomainResourceCreateA
-  { cmdDomainResourceCreateADomainID :: Int
+  { cmdDomainResourceCreateAApiKey :: String
+  , cmdDomainResourceCreateADomainID :: Int
   , cmdDomainResourceCreateAFQDN :: String
   , cmdDomainResourceCreateATarget :: String
   }
   | CmdDomainResourceDelete
-  { cmdDomainResourceDeleteDomainID :: Int
+  { cmdDomainResourceDeleteApiKey :: String
+  , cmdDomainResourceDeleteDomainID :: Int
   , cmdDomainResourceDeleteResourceID :: Int
   }
   deriving (Data, Typeable)
 
 cmdDomainList :: Cmd
 cmdDomainList = CmdDomainList
-  &= help "List domains the API key have access to."
-  &= explicit
-  &= name "list-domains"
+  { cmdDomainListApiKey = "api-key.txt"
+    &= typ "PATH"
+    &= explicit
+    &= name "k"
+    &= name "key"
+    &= help "Path to a file containing a Linode API key."
+  } &= help "List domains the API key have access to."
+    &= explicit
+    &= name "list-domains"
 
 cmdDomainResourceList :: Cmd
 cmdDomainResourceList = CmdDomainResourceList
-  { cmdDomainResourceListDomainID = def
+  { cmdDomainResourceListApiKey = "api-key.txt"
+    &= typ "PATH"
+    &= explicit
+    &= name "k"
+    &= name "key"
+    &= help "Path to a file containing a Linode API key."
+  , cmdDomainResourceListDomainID = def
     &= typ "DomainID"
     &= explicit
     &= name "d"
@@ -56,7 +77,13 @@ cmdDomainResourceList = CmdDomainResourceList
 
 cmdDomainResourceCreateA :: Cmd
 cmdDomainResourceCreateA = CmdDomainResourceCreateA
-  { cmdDomainResourceCreateADomainID = def
+  { cmdDomainResourceCreateAApiKey = "api-key.txt"
+    &= typ "PATH"
+    &= explicit
+    &= name "k"
+    &= name "key"
+    &= help "Path to a file containing a Linode API key."
+  , cmdDomainResourceCreateADomainID = def
     &= typ "DomainID"
     &= explicit
     &= name "d"
@@ -75,7 +102,13 @@ cmdDomainResourceCreateA = CmdDomainResourceCreateA
 
 cmdDomainResourceDelete :: Cmd
 cmdDomainResourceDelete = CmdDomainResourceDelete
-  { cmdDomainResourceDeleteDomainID = def
+  { cmdDomainResourceDeleteApiKey = "api-key.txt"
+    &= typ "PATH"
+    &= explicit
+    &= name "k"
+    &= name "key"
+    &= help "Path to a file containing a Linode API key."
+  , cmdDomainResourceDeleteDomainID = def
     &= typ "DomainID"
     &= explicit
     &= name "d"
@@ -91,25 +124,34 @@ cmdDomainResourceDelete = CmdDomainResourceDelete
 
 processCmd :: Cmd -> IO ()
 processCmd CmdDomainList{..} = do
-  apiKey <- readFile "api-key.txt"
+  apiKey <- readApiKey cmdDomainListApiKey
   mdomains <- domainList apiKey
   case mdomains of
     Nothing -> putStrLn "Some error occured."
     Just domains -> print domains
 
 processCmd CmdDomainResourceList{..} = do
-  apiKey <- readFile "api-key.txt"
+  apiKey <- readApiKey cmdDomainResourceListApiKey
   resources <- domainResourceList apiKey cmdDomainResourceListDomainID
   print resources
 
 processCmd CmdDomainResourceCreateA{..} = do
-  apiKey <- readFile "api-key.txt"
+  apiKey <- readApiKey cmdDomainResourceCreateAApiKey
   resource <- domainResourceCreateA apiKey cmdDomainResourceCreateADomainID
     cmdDomainResourceCreateAFQDN cmdDomainResourceCreateATarget
   print resource
 
 processCmd CmdDomainResourceDelete{..} = do
-  apiKey <- readFile "api-key.txt"
+  apiKey <- readApiKey cmdDomainResourceDeleteApiKey
   resource <- domainResourceDelete apiKey cmdDomainResourceDeleteDomainID
     cmdDomainResourceDeleteResourceID
   print resource
+
+readApiKey :: FilePath -> IO String
+readApiKey filename = do
+  b <- doesFileExist filename
+  if b
+    then readFile filename
+    else do
+      putStrLn $ "API key file `" ++ filename ++ "` not found."
+      exitWith (ExitFailure 1)
