@@ -1,5 +1,5 @@
 name:                hlinode
-version:             0.0.2
+version:             0.0.3
 Cabal-Version:       >= 1.8
 synopsis:            Haskell bindings to the Linode API
 description:         Haskell bindings to the Linode API

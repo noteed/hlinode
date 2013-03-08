@@ -16,6 +16,7 @@ main = (processCmd =<<) $ cmdArgs $
     [ cmdDomainList
     , cmdDomainResourceList
     , cmdDomainResourceCreateA
+    , cmdDomainResourceCreateCNAME
     , cmdDomainResourceDelete
     ]
   &= summary versionString
@@ -34,6 +35,12 @@ data Cmd =
   , cmdDomainResourceListDomainID :: Int
   }
   | CmdDomainResourceCreateA
+  { cmdDomainResourceCreateAApiKey :: String
+  , cmdDomainResourceCreateADomainID :: Int
+  , cmdDomainResourceCreateAFQDN :: String
+  , cmdDomainResourceCreateATarget :: String
+  }
+  | CmdDomainResourceCreateCNAME -- TODO combine with CmdDomainResourceCreateA
   { cmdDomainResourceCreateAApiKey :: String
   , cmdDomainResourceCreateADomainID :: Int
   , cmdDomainResourceCreateAFQDN :: String
@@ -100,6 +107,31 @@ cmdDomainResourceCreateA = CmdDomainResourceCreateA
     &= explicit
     &= name "create-resource-a"
 
+cmdDomainResourceCreateCNAME :: Cmd
+cmdDomainResourceCreateCNAME = CmdDomainResourceCreateCNAME
+  { cmdDomainResourceCreateAApiKey = "api-key.txt"
+    &= typ "PATH"
+    &= explicit
+    &= name "k"
+    &= name "key"
+    &= help "Path to a file containing a Linode API key."
+  , cmdDomainResourceCreateADomainID = def
+    &= typ "DomainID"
+    &= explicit
+    &= name "d"
+    &= name "domain"
+  , cmdDomainResourceCreateAFQDN = def
+    &= typ "FQDN"
+    &= explicit
+    &= name "fqdn"
+  , cmdDomainResourceCreateATarget = def
+    &= typ "Target"
+    &= explicit
+    &= name "target"
+  } &= help "Create a new domain record."
+    &= explicit
+    &= name "create-resource-cname"
+
 cmdDomainResourceDelete :: Cmd
 cmdDomainResourceDelete = CmdDomainResourceDelete
   { cmdDomainResourceDeleteApiKey = "api-key.txt"
@@ -138,6 +170,12 @@ processCmd CmdDomainResourceList{..} = do
 processCmd CmdDomainResourceCreateA{..} = do
   apiKey <- readApiKey cmdDomainResourceCreateAApiKey
   resource <- domainResourceCreateA apiKey cmdDomainResourceCreateADomainID
+    cmdDomainResourceCreateAFQDN cmdDomainResourceCreateATarget
+  print resource
+
+processCmd CmdDomainResourceCreateCNAME{..} = do
+  apiKey <- readApiKey cmdDomainResourceCreateAApiKey
+  resource <- domainResourceCreateCNAME apiKey cmdDomainResourceCreateADomainID
     cmdDomainResourceCreateAFQDN cmdDomainResourceCreateATarget
   print resource
 

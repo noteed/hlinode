@@ -67,6 +67,16 @@ domainResourceCreateA apiKey domainId fqdn target = apiCall apiKey
   , ("Target", B.pack target)
   ]
 
+-- | Create a domain record.
+domainResourceCreateCNAME :: String -> Int -> String -> String -> IO (Maybe ResourceId)
+domainResourceCreateCNAME apiKey domainId fqdn target = apiCall apiKey
+  [ ("api_action", "domain.resource.create")
+  , ("DomainID", B.pack $ show domainId)
+  , ("Type", "CNAME")
+  , ("Name", B.pack fqdn)
+  , ("Target", B.pack target)
+  ]
+
 -- | Delete a domain record.
 domainResourceDelete :: String -> Int -> Int -> IO (Maybe ResourceId)
 domainResourceDelete apiKey domainId resourceId = apiCall apiKey
