@@ -1,5 +1,5 @@
 name:                hlinode
-version:             0.0.1
+version:             0.0.2
 Cabal-Version:       >= 1.8
 synopsis:            Haskell bindings to the Linode API
 description:         Haskell bindings to the Linode API
@@ -12,8 +12,8 @@ build-type:          Simple
 
 library
   build-depends:       base == 4.*,
-                       aeson == 0.4.*,
-                       attoparsec == 0.8.*,
+                       aeson == 0.6.*,
+                       attoparsec == 0.10.*,
                        bytestring == 0.9.*,
                        http-enumerator == 0.7.*,
                        text == 0.11.*
